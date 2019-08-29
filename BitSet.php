@@ -16,7 +16,7 @@ class BitSet{
      * int数组, 用来存储比特位
      * @var array
      */
-    private $words = array(0);
+    private $words = array();
 
     /**
      * 根据int数组来实例化
@@ -31,7 +31,7 @@ class BitSet{
 
     /**
      * 根据二进制数据(字符串)来实例化
-     * @param $bin 二进制数据(字符串)
+     * @param $bin 二进制数据(字符串), 支持空字符串
      * @return BitSet
      */
     public static function from_binary_data($bin){
@@ -56,6 +56,7 @@ class BitSet{
 
     /**
      * 转为二进制数据(字符串)
+     *    如果 $this->words 是空数组, 则返回空字符串
      * @return string
      */
     public function to_binary_string(){
@@ -78,6 +79,15 @@ class BitSet{
             }
         }
         return $result;
+    }
+
+    /**
+     * 设置多个比特位为1
+     * @param $ibits 指定比特位
+     */
+    public function sets(array $ibits){
+        foreach ($ibits as $ibit)
+            $this->set($ibit);
     }
 
     /**
@@ -149,6 +159,40 @@ class BitSet{
 
         return (bool)( $this->words[$iword]
             & (1 << ($ibit % static::WORD_BITS)));
+    }
+
+    /**
+     * and操作
+     * @param $set
+     */
+    public function ands(BitSet $set) {
+        if ($this == $set)
+            return;
+
+        $required = count($set->words); // 待合并的词数
+        $this->expand_words($required);
+
+        // Perform logical AND on words in common
+        for($i = 0; $i < $required; $i++) {
+            $this->words[$i] &= $set->words[$i];
+        }
+    }
+
+    /**
+     * or操作
+     * @param $set
+     */
+    public function ors(BitSet $set) {
+        if ($this == $set)
+            return;
+
+        $required = count($set->words); // 待合并的词数
+        $this->expand_words($required);
+
+        // Perform logical OR on words in common
+        for($i = 0; $i < $required; $i++) {
+            $this->words[$i] |= $set->words[$i];
+        }
     }
 }
 
